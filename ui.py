@@ -9,6 +9,9 @@
 # exliang@uci.edu
 # 79453973
 
+from pathlib import Path, PurePath
+import Profile
+
 def list_directories(myPath):
     if any(myPath.iterdir()):  # check if directory isnt empty
         dir_list = []
@@ -93,12 +96,14 @@ def recursive_e(myPath, file_extension):
 def command_C(myPath, filename):
     newfile = open(filename + ".dsu", "a")
     myPath = myPath.joinpath(filename + ".dsu")
-    print(myPath)
+    # print(myPath)
     username = input("Enter a unique name: ")
     password = input("Enter a password: ")
     bio = input("Enter a brief description of the user: ")
-    profile = Profile.Profile(username, password, bio)  # creating obj Profile
+    profile = Profile.Profile(None, username, password)  # creating obj Profile
+    profile.bio = bio  # setting the bio
     profile.save_profile(myPath)  # saving data
+    print("Data saved.")
 
 
 def command_D(myPath):
@@ -125,6 +130,18 @@ def command_R(myPath):
         else:  # print file contents
             print(myPath.read_text().strip())
             break
+
+
+def command_O(myPath):
+    while True:
+        dsufile = get_path_parts(myPath)
+        if not dsufile.endswith(".dsu"):  # if file isn't DSU file
+            print("ERROR")
+            myPath = get_path(dsufile)
+        else:
+        	f = open(dsufile)
+        	print(dsufile, "opened!")
+        	break
 
 
 def get_path(dsufile):
