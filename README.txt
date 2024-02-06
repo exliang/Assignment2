@@ -1,0 +1,9 @@
+
+Author: Emily Liang 
+Email: exliang@uci.edu
+
+Project Description: This project uses the Python programming language, multiple methods, loops, lists, branching, and built-in methods to create a program for users to inspect, create, delete, or print contents of the files, directories, and subdirectories in their file system. 
+
+What my software does: This program utilizes the pathlib module to get user input using five main commands: L, Q, C, D, and R. Q terminates the program, while L prints out the contents of a specific directory (inputted from the user) and has sub-commands: -r, -f, -s, -e. -r prints out the directory and its subdirectory's content using recursion. -f only prints out the files that are in the specified directory. -s prints out all files that match the name of a specified file (inputted from the user). The specific file name must be specified after the -s on the command line. -e prints out all files that match the specific file extension (inputted from the user). The specific file extension must be specified after the -e on the command line. This program also allows the user to type two sub-commands only if the first sub-command is -r, meaning that the possible commands are -r -f, -r -s, and -r -e. After typing L, the user must type a path before typing the sub-commands. C creates a new dsu file in the user-inputed directory. The user needs to type -n filename after the path. D deletes a DSU file, and R reads and outputs the DSU file's contents line by line.
+
+How to run this software: Type py a1.py or python a1.py in the Command Line/Windows Powershell/Terminal/Git Bash.
