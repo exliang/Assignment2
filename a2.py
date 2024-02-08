@@ -9,7 +9,7 @@
 # exliang@uci.edu
 # 79453973
 
-from pathlib import Path, PurePath
+from pathlib import Path
 import Profile
 import ui
 
@@ -108,6 +108,10 @@ def user_input():
                     ui.command_D(myPath)
                 elif command == "R":  # read file contents
                     ui.command_R(myPath)
+                elif command == "O":  # open exisiting dsu file
+                	ui.command_O(myPath)
+                elif command == "E":  # edit dsu file
+                	ui.command_E(myPath, command_list)
                 else:  # invalid command
                     print("ERROR")
                     ui.get_path()
@@ -122,4 +126,4 @@ if __name__ == '__main__':
     main()
 
 # Citations:
-# - https://docs.python.org/3/library/pathlib.html
+# - https://docs.python.org/3/library/pathlib.html 
