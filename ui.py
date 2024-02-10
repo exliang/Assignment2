@@ -100,7 +100,8 @@ def command_C(myPath, filename):
     username = input("Enter a unique name: ")
     password = input("Enter a password: ")
     bio = input("Enter a brief description of the user: ")
-    profile = Profile.Profile(None, username, password)  # creating obj Profile
+    global profile
+    profile = Profile.Profile(username, password)  # creating obj Profile
     profile.bio = bio  # setting the bio
     profile.save_profile(myPath)  # saving data
     print("Data saved.")
@@ -142,6 +143,54 @@ def command_O(myPath):
         	f = open(dsufile)
         	print(dsufile, "opened!")
         	break
+
+
+def command_E(myPath, command_list, command_C_path = None, command_c_filename = None, command_O_path = None):  # need to support 1 option, 2 options,...all 5 options at a time
+	# format: E -usr "mark b" (called after a new dsu file is created from command C or O)
+	while True:
+		if command_O_path == None:  # if command C was called
+			command_C_path = command_C_path.joinpath(command_c_filename + ".dsu") #this path needs to be the path that ends in dsu
+		elif command_C_path == None and command_c_filename == None:
+			profile_O = Profile.Profile()
+			profile_O.load_profile(command_O_path)  # if command O called, open the profile obj associated w that dsu file
+		for i in range(len(command_list)):
+			if i % 2 != 0:  # if i = odd its a command
+				if command_O_path == None:  # C path is called use profile
+					if command_list[i] == "-usr":  # add username to dsu file
+						profile.username = command_list[i+2][1:len(command_list[i+2])-1]
+					elif command_list[i] == "-pwd":  # add password to dsu file
+						profile.password = command_list[i+2][1:len(command_list[i+2])-1]
+					elif command_list[i] == "-bio":  # add bio to dsu file
+						profile.bio = command_list[i+2][1:len(command_list[i+2])-1]
+					
+					elif command_list[i] == "-addpost":  # add post to dsu file
+						post = Profile.Post()  # create post obj w entry & timestamp
+						entry = command_list[i+2][1:len(command_list[i+2])-1] #ISSUE: need to check for the last quote rather than len(command_list[i+2])-1
+						profile._posts = entry, post.timestamp  # adding the post (ISSUE: this replaces the prev post - may need add func)
+						profile.add_post(post)
+					
+					elif command_list[i] == "-delpost":  # delete post from dsu file
+						profile.del_post(int(command_list[i+2]))
+					profile.save_profile(command_C_path)
+				elif command_C_path == None and command_c_filename == None:  # O path is called use profile_O
+					if command_list[i] == "-usr":  # add username to dsu file
+						profile_O.username = command_list[i+2][1:len(command_list[i+2])-1]
+					elif command_list[i] == "-pwd":  # add password to dsu file
+						profile_O.password = command_list[i+2][1:len(command_list[i+2])-1]
+					elif command_list[i] == "-bio":  # add bio to dsu file
+						profile_O.bio = command_list[i+2][1:len(command_list[i+2])-1]
+					
+					elif command_list[i] == "-addpost":  # add post to dsu file
+						post = Profile.Post()  # create post obj w entry & timestamp
+						entry = command_list[i+2][1:len(command_list[i+2])-1]
+						profile_O._posts = entry, post.timestamp  # adding the post
+					
+					elif command_list[i] == "-delpost":  # delete post from dsu file
+						profile_O.del_post(int(command_list[i+2]))
+					profile_O.save_profile(command_O_path)
+		break
+		#ISSUE: doesn't work for more than 1 option given (need to change slicing) - probs need to remove the command after seeing it 
+		# [1:len(command_list[i+2])-1] needs to be changed
 
 
 def get_path(dsufile):
