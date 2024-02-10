@@ -99,25 +99,33 @@ def user_input():
                         else:  # invalid command
                             print("ERROR")
                 elif command == "C":  # create new DSU file
-                    filename = command_list[3]
+                    global command_c_filename
+                    command_c_filename = command_list[3]
                     if command_list[2] != "-n":
                         print("ERROR")
                     else:
-                        ui.command_C(myPath, filename)
+                        global command_C_path
+                        command_C_path = myPath
+                        ui.command_C(myPath, command_c_filename)
                 elif command == "D":  # delete DSU file
                     ui.command_D(myPath)
                 elif command == "R":  # read file contents
                     ui.command_R(myPath)
                 elif command == "O":  # open exisiting dsu file
+                	global command_O_path
+                	command_O_path = myPath
                 	ui.command_O(myPath)
-                elif command == "E":  # edit dsu file
-                	ui.command_E(myPath, command_list)
                 else:  # invalid command
                     print("ERROR")
                     ui.get_path()
             else:
                 if command == "D" or command == "R":
                     ui.command_D(myPath)
+                elif command == "E":  # edit dsu file
+                	if "command_C_path" in globals():  # prev command is C/if global var has a value
+                		ui.command_E(myPath, command_list, command_C_path, command_c_filename, None)
+                	elif "command_O_path" in globals():  # prev command is O/if global var has a value
+                		ui.command_E(myPath, command_list, None, None, command_O_path)
                 else:
                     print("Directory doesn't exist. Try again.")
 
