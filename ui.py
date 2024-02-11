@@ -155,7 +155,6 @@ def command_E(myPath, command_list, command_C_path = None, command_c_filename = 
 			profile_O.load_profile(command_O_path)  # if command O called, open the profile obj associated w that dsu file
 
 		dictionary = user_input_dict(command_list)
-		print("dictionary:",dictionary)
 
 		for command, text in dictionary.items():
 
@@ -193,7 +192,7 @@ def command_E(myPath, command_list, command_C_path = None, command_c_filename = 
 		break
 
 
-def command_P(myPath, command_list):  # might need to distinguish b/w command C and command O
+def command_P(myPath, command_list):
 	while True:
 		dictionary = user_input_dict(command_list) # {"-pwd": "", "-post": #}
 		for command, text in dictionary.items():
@@ -215,51 +214,31 @@ def command_P(myPath, command_list):  # might need to distinguish b/w command C 
 		break
 
 
-#ISSUE: E -bio "Hi my name is Mark, this is my bio." doesnt work bc command_list becomes ['E', '-bio bio."', '-bio', '"Hi', 'my', 'name', 'is', 'Mark,', 'this', 'is', 'my', 'bio."']
 def user_input_dict(command_list):  # creating a dictionary where keys = commands & values = text
 	my_dict = {}
 	commands = []
 	texts = []
 	text = ""
-	# command_list = list(dict.fromkeys(command_list))  # remove duplicate commands from command_list
 	for i in range(len(command_list[1:])):  # ignore E & P
 		#get commands & options in a dict
 		if command_list[1:][i].startswith("-"):
-			print("command_list:", command_list)
-			print("command_list[1:]:", command_list[1:])
-			print("command_list[1:][i]:",command_list[1:][i])
-			print("i:", i)
 			commands.append(command_list[1:][i])
-			commands = list(dict.fromkeys(commands))  # after adding elems to commands list, remove duplicates
-			print("commands:", commands)
-			if command_list[1:][i] == '-delpost' and command_list[1:][i+1].isnumeric():  # -delpost is not first command
+			if command_list[1:][i] == '-delpost': # and command_list[1:][i+1].isnumeric():  # -delpost is not first command
 				text = int(command_list[1:][i+1])  # get index
 				texts.append(text)
 				text = ""
-			elif command_list[1:][i] == '-post' and command_list[1:][i+1].isnumeric(): #and command_list[1:][i+1] == command_list[1:][len(command_list[1:])-1]:  # middle/ends w -post #
+			elif command_list[1:][i] == '-post': #and command_list[1:][i+1].isnumeric(): #and command_list[1:][i+1] == command_list[1:][len(command_list[1:])-1]:  # middle/ends w -post #
 				text = int(command_list[1:][i+1])  # get index
 				texts.append(text)
 				text = ""
 			elif command_list[1:][len(command_list[1:])-1].startswith("-"):  # if last elem in command_list is a command
 				texts.append(text)  # text should be "", P command for if command has no text needed after
-				text = ""
 			elif command_list[0] == "P":  # commands w no index in b/w (only run for command P)
 				texts.append(text)
-				text = ""
-		elif command_list[1:][i].startswith('\"') and not command_list[1:][i].isnumeric():  # ensure the number from -delpost is not being added
-			if command_list[1:][i].endswith('\"'):  # text is 1 word w no spaces
-				text += command_list[1:][i].strip('\"')
-				texts.append(text)
-				text = ""
-			else:  # text is more than 1 word & has at least 1 space
-				text += command_list[1:][i].lstrip('\"')
-		elif command_list[1:][i].endswith('\"'):
-			text += " " + command_list[1:][i].rstrip('\"')
-			texts.append(text)
-			text = ""
+			else:  # append the text after the command
+				texts.append(command_list[1:][i+1])
 		elif not command_list[1:][i].startswith("-") and not command_list[1:][i].isnumeric():  # if it's neither the start/end quote, E, or a command, still add entries in b/w (command_list[1:][i] != "E" and)
 			text += " " + command_list[1:][i]
-	# commands = list(dict.fromkeys(commands))  # removing duplicate commands
 	my_dict = dict(zip(commands, texts))
 	return my_dict
 
