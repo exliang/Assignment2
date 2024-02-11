@@ -145,52 +145,82 @@ def command_O(myPath):
         	break
 
 
-def command_E(myPath, command_list, command_C_path = None, command_c_filename = None, command_O_path = None):  # need to support 1 option, 2 options,...all 5 options at a time
-	# format: E -usr "mark b" (called after a new dsu file is created from command C or O)
+def command_E(myPath, command_list, command_C_path = None, command_c_filename = None, command_O_path = None):
 	while True:
+
 		if command_O_path == None:  # if command C was called
 			command_C_path = command_C_path.joinpath(command_c_filename + ".dsu") #this path needs to be the path that ends in dsu
 		elif command_C_path == None and command_c_filename == None:
 			profile_O = Profile.Profile()
 			profile_O.load_profile(command_O_path)  # if command O called, open the profile obj associated w that dsu file
-		for i in range(len(command_list)):
-			if i % 2 != 0:  # if i = odd its a command
-				if command_O_path == None:  # C path is called use profile
-					if command_list[i] == "-usr":  # add username to dsu file
-						profile.username = command_list[i+2][1:len(command_list[i+2])-1]
-					elif command_list[i] == "-pwd":  # add password to dsu file
-						profile.password = command_list[i+2][1:len(command_list[i+2])-1]
-					elif command_list[i] == "-bio":  # add bio to dsu file
-						profile.bio = command_list[i+2][1:len(command_list[i+2])-1]
-					
-					elif command_list[i] == "-addpost":  # add post to dsu file
-						post = Profile.Post()  # create post obj w entry & timestamp
-						entry = command_list[i+2][1:len(command_list[i+2])-1] #ISSUE: need to check for the last quote rather than len(command_list[i+2])-1
-						profile._posts = entry, post.timestamp  # adding the post (ISSUE: this replaces the prev post - may need add func)
-						profile.add_post(post)
-					
-					elif command_list[i] == "-delpost":  # delete post from dsu file
-						profile.del_post(int(command_list[i+2]))
-					profile.save_profile(command_C_path)
-				elif command_C_path == None and command_c_filename == None:  # O path is called use profile_O
-					if command_list[i] == "-usr":  # add username to dsu file
-						profile_O.username = command_list[i+2][1:len(command_list[i+2])-1]
-					elif command_list[i] == "-pwd":  # add password to dsu file
-						profile_O.password = command_list[i+2][1:len(command_list[i+2])-1]
-					elif command_list[i] == "-bio":  # add bio to dsu file
-						profile_O.bio = command_list[i+2][1:len(command_list[i+2])-1]
-					
-					elif command_list[i] == "-addpost":  # add post to dsu file
-						post = Profile.Post()  # create post obj w entry & timestamp
-						entry = command_list[i+2][1:len(command_list[i+2])-1]
-						profile_O._posts = entry, post.timestamp  # adding the post
-					
-					elif command_list[i] == "-delpost":  # delete post from dsu file
-						profile_O.del_post(int(command_list[i+2]))
-					profile_O.save_profile(command_O_path)
+
+		dictionary = user_input_dict(command_list)
+
+		for command, text in dictionary.items():
+
+			if command_O_path == None:  # C path is called use profile
+				if command == "-usr":  # add username to dsu file
+					profile.username = text
+				elif command == "-pwd":  # add password to dsu file
+					profile.password = text
+				elif command == "-bio":  # add bio to dsu file
+					profile.bio = text
+				elif command == "-addpost":  # add post to dsu file
+					post = Profile.Post()  # create post obj w entry & timestamp
+					post.entry = text
+					post.timestamp = post.timestamp
+					profile.add_post(post)
+				elif command == "-delpost":  # delete post from dsu file
+					profile.del_post(text)  # text = index
+				profile.save_profile(command_C_path)
+			
+			elif command_C_path == None and command_c_filename == None:  # O path is called use profile_O
+				if command == "-usr":  # add username to dsu file
+					profile_O.username = text
+				elif command == "-pwd":  # add password to dsu file
+					profile_O.password = text
+				elif command == "-bio":  # add bio to dsu file
+					profile_O.bio = text
+				elif command == "-addpost":  # add post to dsu file
+					post = Profile.Post()  # create post obj w entry & timestamp
+					post.entry = text
+					post.timestamp = post.timestamp
+					profile_O.add_post(post)
+				elif command == "-delpost":  # delete post from dsu file
+					profile_O.del_post(text)
+				profile_O.save_profile(command_O_path)
 		break
-		#ISSUE: doesn't work for more than 1 option given (need to change slicing) - probs need to remove the command after seeing it 
-		# [1:len(command_list[i+2])-1] needs to be changed
+
+
+def user_input_dict(command_list):  # creating a dictionary where keys = commands & values = text
+	my_dict = {}
+	commands = []
+	texts = []
+	text = ""
+	print("command_list:", command_list)
+	for i in range(len(command_list[1:])):  # ignore E
+		#get commands & options in a dict
+		if command_list[1:][i].startswith("-"):
+			commands.append(command_list[1:][i])
+			if command_list[1:][i] == '-delpost' and command_list[1:][i+1] == '-delpost':  # -delpost is first command
+				text = int(command_list[1:][i+2])  # get index
+				texts.append(text)
+				text = ""
+			elif command_list[1:][i] == '-delpost' and command_list[1:][i+1] != '-delpost':  # -delpost is not first command
+				text = int(command_list[1:][i+1])  # get index
+				texts.append(text)
+				text = ""
+		elif command_list[1:][i].startswith('\"') and not command_list[1:][i].isnumeric():  # ensure the number from -delpost is not being added
+			text += command_list[1:][i].lstrip('\"')
+		elif command_list[1:][i].endswith('\"'):
+			text += " " + command_list[1:][i].rstrip('\"')
+			texts.append(text)
+			text = ""
+		elif command_list[1:][i] != "E" and not command_list[1:][i].startswith("-") and not command_list[1:][i].isnumeric():  # if it's neither the start/end quote, E, or a command, still add entries in b/w
+			text += " " + command_list[1:][i]
+	commands = list(dict.fromkeys(commands)) # removing duplicate commands
+	my_dict = dict(zip(commands, texts))
+	return my_dict
 
 
 def get_path(dsufile):
