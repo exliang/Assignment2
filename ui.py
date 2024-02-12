@@ -1,7 +1,7 @@
-
 # ui.py
 
-# Starter code for assignment 2 in ICS 32 Programming with Software Libraries in Python
+# Starter code for assignment 2 in ICS 32
+# Programming with Software Libraries in Python
 
 # Replace the following placeholders with your information.
 
@@ -11,6 +11,7 @@
 
 from pathlib import Path, PurePath
 import Profile
+
 
 def list_directories(myPath):
     if any(myPath.iterdir()):  # check if directory isnt empty
@@ -94,17 +95,31 @@ def recursive_e(myPath, file_extension):
 
 
 def command_C(myPath, filename):
-    newfile = open(filename + ".dsu", "a")
-    myPath = myPath.joinpath(filename + ".dsu")
-    # print(myPath)
-    username = input("Enter a unique name: ")
-    password = input("Enter a password: ")
-    bio = input("Enter a brief description of the user: ")
-    global profile
-    profile = Profile.Profile(username, password)  # creating obj Profile
-    profile.bio = bio  # setting the bio
-    profile.save_profile(myPath)  # saving data
-    print("Data saved.")
+    while True:
+        username = input("Enter a unique name: ")
+        password = input("Enter a password: ")
+        bio = input("Enter a brief description of the user: ")
+
+        newPath = myPath.joinpath(filename + ".dsu")
+        if newPath.is_file() and newPath.exists():  # file already exists
+            file = open(filename + ".dsu", "a")  # load file
+        else:  # create file only after data is collected
+            newfile = open(filename + ".dsu", "a")
+
+        # ensuring empty strings or whitespace strings are not added
+        profile = Profile.Profile()  # creating obj Profile
+        profile.bio = bio
+        if not whitespace_checker(username):
+            profile.username = username
+        if not whitespace_checker(password):
+            profile.password = password
+        if not whitespace_checker(username) and not whitespace_checker(password):
+            profile.save_profile(newPath)  # saving data
+            print("Data saved.")
+            break
+        else:
+            print("Invalid username and password.")
+    return profile, newPath
 
 
 def command_D(myPath):
@@ -136,111 +151,106 @@ def command_R(myPath):
 def command_O(myPath):
     while True:
         dsufile = get_path_parts(myPath)
+        # check if dsu file follows Profile format
+        profile_O = Profile.Profile()
+        try:
+            profile_O.load_profile(myPath)
+        except:
+            print("DSU file doesn't follow the Profile format.")
+            break
         if not dsufile.endswith(".dsu"):  # if file isn't DSU file
             print("ERROR")
             myPath = get_path(dsufile)
         else:
-        	f = open(dsufile)
-        	print(dsufile, "opened!")
-        	break
+            f = open(dsufile)
+            print(dsufile, "opened!")
+            break
+    return profile_O, myPath
 
 
-def command_E(myPath, command_list, command_C_path = None, command_c_filename = None, command_O_path = None):
-	while True:
+def command_E(myPath, command_list, profile):
 
-		if command_O_path == None:  # if command C was called
-			command_C_path = command_C_path.joinpath(command_c_filename + ".dsu") #this path needs to be the path that ends in dsu
-		elif command_C_path == None and command_c_filename == None:
-			profile_O = Profile.Profile()
-			profile_O.load_profile(command_O_path)  # if command O called, open the profile obj associated w that dsu file
+    dictionary = user_input_dict(command_list)
 
-		dictionary = user_input_dict(command_list)
-
-		for command, text in dictionary.items():
-
-			if command_O_path == None:  # C path is called use profile
-				if command == "-usr":  # add username to dsu file
-					profile.username = text
-				elif command == "-pwd":  # add password to dsu file
-					profile.password = text
-				elif command == "-bio":  # add bio to dsu file
-					profile.bio = text
-				elif command == "-addpost":  # add post to dsu file
-					post = Profile.Post()  # create post obj w entry & timestamp
-					post.entry = text
-					post.timestamp = post.timestamp
-					profile.add_post(post)
-				elif command == "-delpost":  # delete post from dsu file
-					profile.del_post(text)  # text = index
-				profile.save_profile(command_C_path)
-			
-			elif command_C_path == None and command_c_filename == None:  # O path is called use profile_O
-				if command == "-usr":  # add username to dsu file
-					profile_O.username = text
-				elif command == "-pwd":  # add password to dsu file
-					profile_O.password = text
-				elif command == "-bio":  # add bio to dsu file
-					profile_O.bio = text
-				elif command == "-addpost":  # add post to dsu file
-					post = Profile.Post()  # create post obj w entry & timestamp
-					post.entry = text
-					post.timestamp = post.timestamp
-					profile_O.add_post(post)
-				elif command == "-delpost":  # delete post from dsu file
-					profile_O.del_post(text)
-				profile_O.save_profile(command_O_path)
-		break
+    for command, text in dictionary.items():
+        # ensuring whitespace or empty strings aren't added
+        if isinstance(text, int) or not check_if_only_space(text):
+            if command == "-usr":  # add username to dsu file
+                if whitespace_checker(text):  # username contains whitespace
+                    print("Error: Username will not be added as there is whitespace.")
+                    break  # breaking out of loop so options after are not run
+                else:
+                    profile.username = text
+            elif command == "-pwd":  # add password to dsu file
+                if whitespace_checker(text):
+                    print("Error: Password will not be added as there is whitespace.")
+                    break  # breaking out of loop so options after are not run
+                else:
+                    profile.password = text
+            elif command == "-bio":  # add bio to dsu file
+                profile.bio = text
+            elif command == "-addpost":  # add post to dsu file
+                post = Profile.Post()  # create post obj w entry & timestamp
+                post.entry = text
+                post.timestamp = post.timestamp
+                profile.add_post(post)
+            elif command == "-delpost":  # delete post from dsu file
+                profile.del_post(text)  # text = index
+            profile.save_profile(myPath)
+        else:  # text is all whitespace or is an empty string
+            print("Invalid input.")
+            break
 
 
-def command_P(myPath, command_list):
-	while True:
-		dictionary = user_input_dict(command_list) # {"-pwd": "", "-post": #}
-		for command, text in dictionary.items():
-			if command == "-usr":
-				print(f'Username: {profile.username}')
-			elif command == "-pwd":
-				print(f'Password: {profile.password}')
-			elif command == "-bio":
-				print(f'Bio: {profile.bio}')
-			elif command == "-posts":
-				print(f'All posts: {profile.get_posts()}')  # prints a list of all posts 
-			elif command == "-post":
-				post_list = profile.get_posts()
-				for i in range(len(post_list)):
-					if i == text:  # index matches 
-						print(f'Post at index {i}: {post_list[i]}')
-			elif command == "-all":
-				print(f'Username: {profile.username}\nPassword: {profile.password}\nBio: {profile.bio}\nAll posts: {profile.get_posts()}')
-		break
+def command_P(myPath, command_list, profile):
+    while True:
+        dictionary = user_input_dict(command_list)  # {"-pwd": "", "-post": #}
+        for command, text in dictionary.items():
+            if command == "-usr":
+                print(f'Username: {profile.username}')
+            elif command == "-pwd":
+                print(f'Password: {profile.password}')
+            elif command == "-bio":
+                print(f'Bio: {profile.bio}')
+            elif command == "-posts":
+                print(f'All posts: {profile.get_posts()}')
+            elif command == "-post":
+                post_list = profile.get_posts()
+                for i in range(len(post_list)):
+                    if i == text:  # index matches
+                        print(f'Post at index {i}: {post_list[i]}')
+            elif command == "-all":
+                print(f'Username: {profile.username}\nPassword: {profile.password}\nBio: {profile.bio}\nAll posts: {profile.get_posts()}')
+        break
 
 
-def user_input_dict(command_list):  # creating a dictionary where keys = commands & values = text
-	my_dict = {}
-	commands = []
-	texts = []
-	text = ""
-	for i in range(len(command_list[1:])):  # ignore E & P
-		#get commands & options in a dict
-		if command_list[1:][i].startswith("-"):
-			commands.append(command_list[1:][i])
-			if command_list[1:][i] == '-delpost': # and command_list[1:][i+1].isnumeric():  # -delpost is not first command
-				text = int(command_list[1:][i+1])  # get index
-				texts.append(text)
-				text = ""
-			elif command_list[1:][i] == '-post': #and command_list[1:][i+1].isnumeric(): #and command_list[1:][i+1] == command_list[1:][len(command_list[1:])-1]:  # middle/ends w -post #
-				text = int(command_list[1:][i+1])  # get index
-				texts.append(text)
-				text = ""
-			elif command_list[1:][len(command_list[1:])-1].startswith("-"):  # if last elem in command_list is a command
-				texts.append(text)  # text should be "", P command for if command has no text needed after
-			elif command_list[0] == "P":  # commands w no index in b/w (only run for command P)
-				texts.append(text)
-			else:  # append the text after the command
-				texts.append(command_list[1:][i+1])
-		elif not command_list[1:][i].startswith("-") and not command_list[1:][i].isnumeric():  # if it's neither the start/end quote, E, or a command, still add entries in b/w (command_list[1:][i] != "E" and)
-			text += " " + command_list[1:][i]
-	my_dict = dict(zip(commands, texts))
-	return my_dict
+def user_input_dict(command_list):  # creating dict
+    my_dict = {}
+    commands = []
+    texts = []
+    text = ""
+    for i in range(len(command_list[1:])):  # ignore E & P
+        # get commands & options in a dict
+        if command_list[1:][i].startswith("-"):
+            commands.append(command_list[1:][i])
+            if command_list[1:][i] == '-delpost':
+                text = int(command_list[1:][i+1])  # get index
+                texts.append(text)
+                text = ""
+            elif command_list[1:][i] == '-post':
+                text = int(command_list[1:][i+1])  # get index
+                texts.append(text)
+                text = ""
+            elif command_list[1:][len(command_list[1:])-1].startswith("-"):
+                texts.append(text)  # text = "", last elem is command
+            elif command_list[0] == "P":  # commands w no index in b/w
+                texts.append(text)
+            else:  # append the text after the command
+                texts.append(command_list[1:][i+1])
+        elif not command_list[1:][i].startswith("-") and not command_list[1:][i].isnumeric():
+            text += " " + command_list[1:][i]  # still add in b/w entries
+    my_dict = dict(zip(commands, texts))
+    return my_dict
 
 
 def get_path(dsufile):
@@ -255,3 +265,11 @@ def get_path_parts(myPath):
     dir_tuple = p.parts[1:]  # getting parts of dir (ignoring C:\)
     dsufile = dir_tuple[len(dir_tuple)-1]
     return dsufile
+
+
+def whitespace_checker(text):
+    return text.isspace() or text == "" or " " in text
+
+
+def check_if_only_space(text):
+    return text == "" or text.isspace()
