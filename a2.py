@@ -1,6 +1,8 @@
+
 # a2.py
 
-# Starter code for assignment 2 in ICS 32 Programming with Software Libraries in Python
+# Starter code for assignment 2 in ICS 32
+# Programming with Software Libraries in Python
 
 # Replace the following placeholders with your information.
 
@@ -13,9 +15,11 @@ import Profile
 import ui
 from shlex import split
 
+
 def main():
     print("Welcome!")
-    user_input(printing_user_interface(False))  # pass in admin as False to run the interface
+    # pass in admin as False to run the interface
+    user_input(printing_user_interface(False))
 
 
 def user_input(user_command):
@@ -26,7 +30,7 @@ def user_input(user_command):
             user_command = input()
         else:  # user_command is not admin
             if is_admin:  # if admin mode was already called
-        	    user_command = input()
+                user_command = input()
 
         if user_command[0] == 'P' or user_command[0] == 'E':
             command_list = split(user_command)
@@ -36,31 +40,31 @@ def user_input(user_command):
 
         if command == 'Q':
             quit()
-        elif len(command_list) == 1 and command != "admin":  # user only inputs a letter & no dir
-            print("ERROR")
+        elif len(command_list) == 1 and command != "admin":
+            print("ERROR")  # user only inputs a letter & no dir
         elif command == "admin":
-        	is_admin = True
-        	user_command = input()
+            is_admin = True
+            user_command = input()
         else:
             path = command_list[1]
             myPath = Path(path)
 
-            if command != 'P' and command != 'E':  # don't do this check for E & P commands
-	            # ensuring proper whitespace handling
-	            path = [command_list[1]]  # part of path
-	            for part in command_list[2:]:
-	                if part.startswith("-"):  # reached next command (ex: -r)
-	                    break
-	                elif ("\\" in part) or ("/" in part) or ("." in part):
-	                    path.append(part)  # part of path (file or dir)
-	            myPath = " ".join(path)
-	            for part in command_list[:]:  # copy of lst bc of indexing
-	                if part.startswith("-"):  # reached next command (ex: -r)
-	                    break
-	                elif ("\\" in part) or ("/" in part) or ("." in part):
-	                    command_list.remove(part)  # remove old path in command_lst
-	            command_list.insert(1, myPath)  # insert new path into list
-	            myPath = Path(myPath)  # new path
+            if command != 'P' and command != 'E':  # dont check for E & P
+                # ensuring proper whitespace handling
+                path = [command_list[1]]  # part of path
+                for part in command_list[2:]:
+                    if part.startswith("-"):  # reached next command (ex: -r)
+                        break
+                    elif ("\\" in part) or ("/" in part) or ("." in part):
+                        path.append(part)  # part of path (file or dir)
+                myPath = " ".join(path)
+                for part in command_list[:]:  # copy of lst bc of indexing
+                    if part.startswith("-"):  # reached next command (ex: -r)
+                        break
+                    elif ("\\" in part) or ("/" in part) or ("." in part):
+                        command_list.remove(part)  # remove old path
+                command_list.insert(1, myPath)  # insert new path into list
+                myPath = Path(myPath)  # new path
 
             if myPath.exists():  # ensure that directory exists
                 if command == 'L':  # list contents of directory
@@ -124,7 +128,7 @@ def user_input(user_command):
                 elif command == "R":  # read file contents
                     ui.command_R(myPath)
                 elif command == "O":  # open exisiting dsu file
-                	my_profile, newPath = ui.command_O(myPath)
+                    my_profile, newPath = ui.command_O(myPath)
                 else:  # invalid command
                     print("ERROR")
                     ui.get_path(dsufile)
@@ -132,54 +136,55 @@ def user_input(user_command):
                 if command == "D" or command == "R":
                     ui.command_D(myPath)
                 elif command == "E":  # edit dsu file
-                	ui.command_E(newPath, command_list, my_profile)
+                    ui.command_E(newPath, command_list, my_profile)
                 elif command == "P":  # printing data from dsu file
-                	ui.command_P(myPath, command_list, my_profile)
+                    ui.command_P(myPath, command_list, my_profile)
                 else:
                     print("Directory doesn't exist. Try again.")
-        if not is_admin:  # after exectuing user command & not in admin mode, print user interface & get next command
-        	user_command = printing_user_interface(is_admin)
+        if not is_admin:  # after executing command & not admin
+            # print interface & get next command
+            user_command = printing_user_interface(is_admin)
 
 
 def printing_user_interface(is_admin):  # Menu of options
-	if not is_admin:
-		print("\nHere are the possible command options:\n")
-		print(" L - list contents of directory (has sub-commands) ~ FORMAT: 'L path'")
-		print("   -r -> ouput directory content recursively ~ FORMAT: 'L path -r'")
-		print("   -f -> output files only                   ~ FORMAT: 'L path -f'")
-		print("   -s -> output files given a file name      ~ FORMAT: 'L path -s filename.extension'")
-		print("   -e -> output files given a file extension ~ FORMAT: 'L path -e fileextension'")
-		print("    Other valid ~ FORMATS: 'L path -r -f', 'L path -r -s filename.extension', 'L path -r -e fileextension'\n")
-		print(" C - create a new journal & acquire username, password, & bio ~ FORMAT: 'C path -n filename'\n")
-		print(" D - delete a dsu file ~ FORMAT: 'D path_to_dsu_file'\n")
-		print(" R - read contents of a dsu file ~ FORMAT: 'R path_to_dsu_file'\n")
-		print(" O - open a journal ~ FORMAT: 'O path_to_dsu_file'\n")
-		print(" E - edit a journal (has sub-commands) ~ FORMAT: 'E subcommand text'")
-		print("   NOTE: must call C or O command before calling E command!")
-		print("   -usr     -> edits username of the journal  ~ FORMAT: 'E -usr username'")
-		print("   -pwd     -> edits password of the journal  ~ FORMAT: 'E -pwd password'")
-		print("   -bio     -> edits biography of the journal ~ FORMAT: 'E -bio biography'")
-		print("   -addpost -> adds a post to the journal     ~ FORMAT: 'E -addpost newpost'")
-		print("   -delpost -> deletes a post in the journal  ~ FORMAT: 'E -delpost postnumber' (postnumber starts at 0)")
-		print("    NOTE: can type in any combination of the options above!\n")
-		print(" P - output data stored in journal ~ FORMAT: P command optionaltext")
-		print("   NOTE: must call C or O command before calling P command!")
-		print("   -usr   -> outputs username stored in the journal  ~ FORMAT: 'P -usr'")
-		print("   -pwd   -> ouputs password stored in the journal   ~ FORMAT: 'P -pwd'")
-		print("   -bio   -> outputs biography stored in the journal ~ FORMAT: 'P -bio'")
-		print("   -posts -> outputs all posts stored in the journal ~ FORMAT: 'P -posts'")
-		print("   -post  -> outputs a post by its postnumber        ~ FORMAT: 'P -post postnumber' (postnumber starts at 0)")
-		print("   -all   -> outputs all content in the journal      ~ FORMAT: 'P -all'")
-		print("    NOTE: can type in any combination of the options above!\n")
-		print(" Q - quit the program ~ FORMAT: 'Q' \n")
-		print(" Admin mode - disables user friendly interface ~ FORMAT: 'admin'\n")
-		user_command = input("Type the format you would like: ")
-		return user_command
+    if not is_admin:
+        print("\nHere are the possible command options:\n")
+        print(" L - list contents of directory (has sub-commands) ~ FORMAT: 'L path'")
+        print("   -r -> ouput directory content recursively ~ FORMAT: 'L path -r'")
+        print("   -f -> output files only                   ~ FORMAT: 'L path -f'")
+        print("   -s -> output files given a file name      ~ FORMAT: 'L path -s filename.extension'")
+        print("   -e -> output files given a file extension ~ FORMAT: 'L path -e fileextension'")
+        print("    Other valid ~ FORMATS: 'L path -r -f', 'L path -r -s filename.extension', 'L path -r -e fileextension'\n")
+        print(" C - create a new journal & acquire username, password, & bio ~ FORMAT: 'C path -n filename'\n")
+        print(" D - delete a dsu file ~ FORMAT: 'D path_to_dsu_file'\n")
+        print(" R - read contents of a dsu file ~ FORMAT: 'R path_to_dsu_file'\n")
+        print(" O - open a journal ~ FORMAT: 'O path_to_dsu_file'\n")
+        print(" E - edit a journal (has sub-commands) ~ FORMAT: 'E subcommand text'")
+        print("   NOTE: must call C or O command before calling E command!")
+        print("   -usr     -> edits username of the journal  ~ FORMAT: 'E -usr username'")
+        print("   -pwd     -> edits password of the journal  ~ FORMAT: 'E -pwd password'")
+        print("   -bio     -> edits biography of the journal ~ FORMAT: 'E -bio biography'")
+        print("   -addpost -> adds a post to the journal     ~ FORMAT: 'E -addpost newpost'")
+        print("   -delpost -> deletes a post in the journal  ~ FORMAT: 'E -delpost postnumber' (postnumber starts at 0)")
+        print("    NOTE: can type in any combination of the options above!\n")
+        print(" P - output data stored in journal ~ FORMAT: P command optionaltext")
+        print("   NOTE: must call C or O command before calling P command!")
+        print("   -usr   -> outputs username stored in the journal  ~ FORMAT: 'P -usr'")
+        print("   -pwd   -> ouputs password stored in the journal   ~ FORMAT: 'P -pwd'")
+        print("   -bio   -> outputs biography stored in the journal ~ FORMAT: 'P -bio'")
+        print("   -posts -> outputs all posts stored in the journal ~ FORMAT: 'P -posts'")
+        print("   -post  -> outputs a post by its postnumber        ~ FORMAT: 'P -post postnumber' (postnumber starts at 0)")
+        print("   -all   -> outputs all content in the journal      ~ FORMAT: 'P -all'")
+        print("    NOTE: can type in any combination of the options above!\n")
+        print(" Q - quit the program ~ FORMAT: 'Q' \n")
+        print(" Admin mode - disables user friendly interface ~ FORMAT: 'admin'\n")
+        user_command = input("Type the format you would like: ")
+        return user_command
 
 
 if __name__ == '__main__':
     main()
 
 # Citations:
-# - https://docs.python.org/3/library/pathlib.html 
+# - https://docs.python.org/3/library/pathlib.html
 # - https://docs.python.org/3/library/shlex.html#module-shlex
