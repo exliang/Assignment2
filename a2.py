@@ -1,4 +1,4 @@
-# ui.py
+# a2.py
 
 # Starter code for assignment 2 in ICS 32 Programming with Software Libraries in Python
 
@@ -8,265 +8,178 @@
 # exliang@uci.edu
 # 79453973
 
-from pathlib import Path, PurePath
+from pathlib import Path
 import Profile
+import ui
+from shlex import split
 
-def list_directories(myPath):
-    if any(myPath.iterdir()):  # check if directory isnt empty
-        dir_list = []
-        file_list = []
-        for currentPath in myPath.iterdir():  # list contents of the directory
-            if currentPath.is_file():  # if is file, put it in the file list
-                file_list.append(currentPath)
-            elif currentPath.is_dir():  # if it's a dir, put in the dir list
-                dir_list.append(currentPath)
-        file_list.extend(dir_list)  # combine lists (files first)
-        combined_list = file_list
-        for directory in combined_list:
-            print(directory)
+def main():
+    print("Welcome!")
+    user_input(printing_user_interface(False))  # pass in admin as False to run the interface
 
 
-def list_files(myPath):
-    if any(myPath.iterdir()):  # check if directory isnt empty
-        for currentPath in myPath.iterdir():  # list contents of the directory
-            if currentPath.is_file():  # list files only
-                print(currentPath)
-
-
-def matching_files(myPath, file_name):
-    if any(myPath.iterdir()):  # check if directory isnt empty
-        for currentPath in myPath.iterdir():  # list contents of the directory
-            if currentPath.is_file() and currentPath.name == file_name:
-                print(currentPath)
-
-
-def matching_extension(myPath, file_extension):
-    if any(myPath.iterdir()):  # check if directory isnt empty
-        for currentPath in myPath.iterdir():  # list contents of the directory
-            if currentPath.name.endswith(file_extension):  # file type = file e
-                print(currentPath)
-
-
-def recursive(myPath):
-    dir_list = []
-    if not any(myPath.iterdir()):  # if there's no more folders in directory
-        return
-    elif any(myPath.iterdir()):  # check if directory isnt empty
-        for currentPath in myPath.iterdir():  # list contents of the directory
-            if currentPath.is_file():  # if it's a file, print it
-                print(currentPath)
-        for currentPath in myPath.iterdir():  # list contents of the directory
-            if currentPath.is_dir():  # if a dir, call func recursively
-                dir_list.append(currentPath)
-                print(currentPath)
-                recursive(currentPath)
-
-
-def recursive_f(myPath):
-    if any(myPath.iterdir()):  # check if directory isnt empty
-        for currentPath in myPath.iterdir():  # list contents of the directory
-            if not currentPath.is_dir():
-                print(currentPath)
-        for currentPath in myPath.iterdir():
-            if currentPath.is_dir():  # if a dir, call func recursively
-                recursive_f(currentPath)
-
-
-def recursive_s(myPath, file_name):
-    if any(myPath.iterdir()):  # check if directory isnt empty
-        for currentPath in myPath.iterdir():  # list contents of the directory
-            if currentPath.is_file() and currentPath.name == file_name:
-                print(currentPath)
-        for currentPath in myPath.iterdir():
-            if currentPath.is_dir():  # if a dir, call func recursively
-                recursive_s(currentPath, file_name)
-
-
-def recursive_e(myPath, file_extension):
-    if any(myPath.iterdir()):  # check if directory isnt empty
-        for currentPath in myPath.iterdir():  # list contents of the directory
-            if currentPath.name.endswith(file_extension):  # file type = file e
-                print(currentPath)
-        for currentPath in myPath.iterdir():
-            if currentPath.is_dir():  # if a dir, call func recursively
-                recursive_e(currentPath, file_extension)
-
-
-def command_C(myPath, filename):
-	while True:
-	    username = input("Enter a unique name: ")
-	    password = input("Enter a password: ")
-	    bio = input("Enter a brief description of the user: ")
-
-	    newPath = myPath.joinpath(filename + ".dsu")
-	    if newPath.is_file() and newPath.exists(): # file already exists
-	        file = open(filename + ".dsu", "a") # load file 
-	    else:  # create file only after data is collected
-	        newfile = open(filename + ".dsu", "a")
-
-	    # ensuring empty strings or whitespace strings are not added
-	    profile = Profile.Profile()  # creating obj Profile
-	    profile.bio = bio
-	    if not whitespace_checker(username):
-	        profile.username = username
-	    if not whitespace_checker(password):
-	        profile.password = password
-	    if not whitespace_checker(username) and not whitespace_checker(password):
-	        profile.save_profile(newPath)  # saving data
-	        print("Data saved.")
-	        break
-	    else:
-	   	    print("Invalid username and password.")
-	return profile, newPath
-
-
-def command_D(myPath):
+def user_input(user_command):
+    is_admin = False
     while True:
-        dsufile = get_path_parts(myPath)
-        if not dsufile.endswith(".dsu"):  # if file isn't DSU file
-            print("ERROR")
-            myPath = get_path(dsufile)  # so that myPath changes
-        else:  # file is DSU file
-            Path.unlink(dsufile)  # delete file from path
-            print(myPath, "DELETED")  # output the path
-            break
+        if user_command == "admin":  # user command is admin
+            is_admin = True
+            user_command = input()
+        else:  # user_command is not admin
+            if is_admin:  # if admin mode was already called
+        	    user_command = input()
 
-
-def command_R(myPath):
-    while True:
-        dsufile = get_path_parts(myPath)
-        if not dsufile.endswith(".dsu"):  # if file isn't DSU file
-            print("ERROR")
-            myPath = get_path(dsufile)
-        elif myPath.stat().st_size == 0:  # file_size = myPath.stat().st_size
-            print("EMPTY")
-            myPath = get_path(dsufile)
-        else:  # print file contents
-            print(myPath.read_text().strip())
-            break
-
-
-def command_O(myPath):
-    while True:
-        dsufile = get_path_parts(myPath)
-        # check if dsu file follows Profile format
-        profile_O = Profile.Profile()
-        try:
-        	profile_O.load_profile(myPath)
-        except:
-        	print("DSU file doesn't follow the Profile format.")
-        	break
-        if not dsufile.endswith(".dsu"):  # if file isn't DSU file
-            print("ERROR")
-            myPath = get_path(dsufile)
+        if user_command[0] == 'P' or user_command[0] == 'E':
+            command_list = split(user_command)
         else:
-        	f = open(dsufile)
-        	print(dsufile, "opened!")
-        	break
-    return profile_O, myPath
+            command_list = user_command.split()
+        command = command_list[0]
+
+        if command == 'Q':
+            quit()
+        elif len(command_list) == 1 and command != "admin":  # user only inputs a letter & no dir
+            print("ERROR")
+        elif command == "admin":
+        	is_admin = True
+        	user_command = input()
+        else:
+            path = command_list[1]
+            myPath = Path(path)
+
+            if command != 'P' and command != 'E':  # don't do this check for E & P commands
+	            # ensuring proper whitespace handling
+	            path = [command_list[1]]  # part of path
+	            for part in command_list[2:]:
+	                if part.startswith("-"):  # reached next command (ex: -r)
+	                    break
+	                elif ("\\" in part) or ("/" in part) or ("." in part):
+	                    path.append(part)  # part of path (file or dir)
+	            myPath = " ".join(path)
+	            for part in command_list[:]:  # copy of lst bc of indexing
+	                if part.startswith("-"):  # reached next command (ex: -r)
+	                    break
+	                elif ("\\" in part) or ("/" in part) or ("." in part):
+	                    command_list.remove(part)  # remove old path in command_lst
+	            command_list.insert(1, myPath)  # insert new path into list
+	            myPath = Path(myPath)  # new path
+
+            if myPath.exists():  # ensure that directory exists
+                if command == 'L':  # list contents of directory
+                    if len(command_list) == 2:  # [COMMAND] [INPUT]
+                        if "." in str(myPath):  # last part is a file
+                            print("ERROR")
+                        else:
+                            ui.list_directories(myPath)
+                    elif len(command_list) == 3:  # [C] [INPUT] [[-]OPTION]
+                        option = command_list[2]
+                        if option == '-r':
+                            ui.recursive(myPath)
+                        elif option == '-f':  # output files only
+                            ui.list_files(myPath)
+                        else:  # invalid command
+                            print("ERROR")
+                    elif len(command_list) == 4:  # [C][I][[-]O][I]
+                        option = command_list[2]
+                        if option == '-s':  # output files that match file name
+                            file_name = command_list[3]
+                            if "." not in file_name:  # ensure file is entered
+                                print("ERROR")
+                            else:
+                                ui.matching_files(myPath, file_name)
+                        elif option == '-e':
+                            file_extension = command_list[3]
+                            if len(file_extension) != 3:
+                                print("ERROR")
+                            else:
+                                ui.matching_extension(myPath, file_extension)
+                        elif option == '-r':  # -r -f
+                            option2 = command_list[3]
+                            ui.recursive_f(myPath)
+                        else:  # invalid command
+                            print("ERROR")
+                    elif len(command_list) == 5:  # [C][I][[-]O][I][I]
+                        option = command_list[2]
+                        option2 = command_list[3]
+                        if option == '-r' and option2 == '-s':  # -r -s filen.e
+                            file_name = command_list[4]
+                            if "." not in file_name:  # ensure file is entered
+                                print("ERROR")
+                            else:
+                                ui.recursive_s(myPath, file_name)
+                        elif option == '-r' and option2 == '-e':  # -r -e filee
+                            file_extension = command_list[4]
+                            if file_extension.isnumeric():  # fileex has nums
+                                print("ERROR")
+                            else:
+                                ui.recursive_e(myPath, file_extension)
+                        else:  # invalid command
+                            print("ERROR")
+                elif command == "C":  # create new DSU file
+                    if command_list[2] != "-n":
+                        print("ERROR")
+                    else:
+                        filename = command_list[3]
+                        my_profile, newPath = ui.command_C(myPath, filename)
+                elif command == "D":  # delete DSU file
+                    ui.command_D(myPath)
+                elif command == "R":  # read file contents
+                    ui.command_R(myPath)
+                elif command == "O":  # open exisiting dsu file
+                	my_profile, newPath = ui.command_O(myPath)
+                else:  # invalid command
+                    print("ERROR")
+                    ui.get_path(dsufile)
+            else:
+                if command == "D" or command == "R":
+                    ui.command_D(myPath)
+                elif command == "E":  # edit dsu file
+                	ui.command_E(newPath, command_list, my_profile)
+                elif command == "P":  # printing data from dsu file
+                	ui.command_P(myPath, command_list, my_profile)
+                else:
+                    print("Directory doesn't exist. Try again.")
+        if not is_admin:  # after exectuing user command & not in admin mode, print user interface & get next command
+        	user_command = printing_user_interface(is_admin)
 
 
-def command_E(myPath, command_list, profile):
-
-	dictionary = user_input_dict(command_list)
-
-	for command, text in dictionary.items():
-		if isinstance(text, int) or not check_if_only_space(text):  # ensuring whitespace or empty strings aren't added
-			if command == "-usr":  # add username to dsu file
-				if whitespace_checker(text):  # username contains whitespace
-					print("Error: Username will not be added as there is whitespace.")
-					break  # breaking out of loop so options after are not run
-				else:
-					profile.username = text
-			elif command == "-pwd":  # add password to dsu file
-				if whitespace_checker(text):
-					print("Error: Password will not be added as there is whitespace.")
-					break  # breaking out of loop so options after are not run
-				else:
-				    profile.password = text
-			elif command == "-bio":  # add bio to dsu file
-				profile.bio = text
-			elif command == "-addpost":  # add post to dsu file
-				post = Profile.Post()  # create post obj w entry & timestamp
-				post.entry = text
-				post.timestamp = post.timestamp
-				profile.add_post(post)
-			elif command == "-delpost":  # delete post from dsu file
-				profile.del_post(text)  # text = index
-			profile.save_profile(myPath)
-		else:  # text is all whitespace or is an empty string
-			print("Invalid input.")
-			break
-
-
-def command_P(myPath, command_list, profile):
-	while True:
-		dictionary = user_input_dict(command_list)  # {"-pwd": "", "-post": #}
-		for command, text in dictionary.items():
-			if command == "-usr":
-				print(f'Username: {profile.username}')
-			elif command == "-pwd":
-				print(f'Password: {profile.password}')
-			elif command == "-bio":
-				print(f'Bio: {profile.bio}')
-			elif command == "-posts":
-				print(f'All posts: {profile.get_posts()}')  # prints a list of all posts 
-			elif command == "-post":
-				post_list = profile.get_posts()
-				for i in range(len(post_list)):
-					if i == text:  # index matches 
-						print(f'Post at index {i}: {post_list[i]}')
-			elif command == "-all":
-				print(f'Username: {profile.username}\nPassword: {profile.password}\nBio: {profile.bio}\nAll posts: {profile.get_posts()}')
-		break
+def printing_user_interface(is_admin):  # Menu of options
+	if not is_admin:
+		print("\nHere are the possible command options:\n")
+		print(" L - list contents of directory (has sub-commands) ~ FORMAT: 'L path'")
+		print("   -r -> ouput directory content recursively ~ FORMAT: 'L path -r'")
+		print("   -f -> output files only                   ~ FORMAT: 'L path -f'")
+		print("   -s -> output files given a file name      ~ FORMAT: 'L path -s filename.extension'")
+		print("   -e -> output files given a file extension ~ FORMAT: 'L path -e fileextension'")
+		print("    Other valid ~ FORMATS: 'L path -r -f', 'L path -r -s filename.extension', 'L path -r -e fileextension'\n")
+		print(" C - create a new journal & acquire username, password, & bio ~ FORMAT: 'C path -n filename'\n")
+		print(" D - delete a dsu file ~ FORMAT: 'D path_to_dsu_file'\n")
+		print(" R - read contents of a dsu file ~ FORMAT: 'R path_to_dsu_file'\n")
+		print(" O - open a journal ~ FORMAT: 'O path_to_dsu_file'\n")
+		print(" E - edit a journal (has sub-commands) ~ FORMAT: 'E subcommand text'")
+		print("   NOTE: must call C or O command before calling E command!")
+		print("   -usr     -> edits username of the journal  ~ FORMAT: 'E -usr username'")
+		print("   -pwd     -> edits password of the journal  ~ FORMAT: 'E -pwd password'")
+		print("   -bio     -> edits biography of the journal ~ FORMAT: 'E -bio biography'")
+		print("   -addpost -> adds a post to the journal     ~ FORMAT: 'E -addpost newpost'")
+		print("   -delpost -> deletes a post in the journal  ~ FORMAT: 'E -delpost postnumber' (postnumber starts at 0)")
+		print("    NOTE: can type in any combination of the options above!\n")
+		print(" P - output data stored in journal ~ FORMAT: P command optionaltext")
+		print("   NOTE: must call C or O command before calling P command!")
+		print("   -usr   -> outputs username stored in the journal  ~ FORMAT: 'P -usr'")
+		print("   -pwd   -> ouputs password stored in the journal   ~ FORMAT: 'P -pwd'")
+		print("   -bio   -> outputs biography stored in the journal ~ FORMAT: 'P -bio'")
+		print("   -posts -> outputs all posts stored in the journal ~ FORMAT: 'P -posts'")
+		print("   -post  -> outputs a post by its postnumber        ~ FORMAT: 'P -post postnumber' (postnumber starts at 0)")
+		print("   -all   -> outputs all content in the journal      ~ FORMAT: 'P -all'")
+		print("    NOTE: can type in any combination of the options above!\n")
+		print(" Q - quit the program ~ FORMAT: 'Q' \n")
+		print(" Admin mode - disables user friendly interface ~ FORMAT: 'admin'\n")
+		user_command = input("Type the format you would like: ")
+		return user_command
 
 
-def user_input_dict(command_list):  # creating a dictionary where keys = commands & values = text
-	my_dict = {}
-	commands = []
-	texts = []
-	text = ""
-	for i in range(len(command_list[1:])):  # ignore E & P
-		#get commands & options in a dict
-		if command_list[1:][i].startswith("-"):
-			commands.append(command_list[1:][i])
-			if command_list[1:][i] == '-delpost':  # -delpost is not first command
-				text = int(command_list[1:][i+1])  # get index
-				texts.append(text)
-				text = ""
-			elif command_list[1:][i] == '-post':
-				text = int(command_list[1:][i+1])  # get index
-				texts.append(text)
-				text = ""
-			elif command_list[1:][len(command_list[1:])-1].startswith("-"):  # if last elem in command_list is a command
-				texts.append(text)  # text should be "", P command for if command has no text needed after
-			elif command_list[0] == "P":  # commands w no index in b/w (only run for command P)
-				texts.append(text)
-			else:  # append the text after the command
-				texts.append(command_list[1:][i+1])
-		elif not command_list[1:][i].startswith("-") and not command_list[1:][i].isnumeric():  # if it's neither the start/end quote, E, or a command, still add entries in b/w (command_list[1:][i] != "E" and)
-			text += " " + command_list[1:][i]
-	my_dict = dict(zip(commands, texts))
-	return my_dict
+if __name__ == '__main__':
+    main()
 
-
-def get_path(dsufile):
-    user_command = input()  # keep on asking for input
-    command_list = user_command.split()
-    myPath = Path(command_list[1])
-    return myPath
-
-
-def get_path_parts(myPath):
-    p = PurePath(myPath)
-    dir_tuple = p.parts[1:]  # getting parts of dir (ignoring C:\)
-    dsufile = dir_tuple[len(dir_tuple)-1]
-    return dsufile
-
-
-def whitespace_checker(text):
-	return text.isspace() or text == "" or " " in text
-
-
-def check_if_only_space(text):
-	return text == "" or text.isspace()
+# Citations:
+# - https://docs.python.org/3/library/pathlib.html 
+# - https://docs.python.org/3/library/shlex.html#module-shlex
